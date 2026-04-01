@@ -172,9 +172,16 @@ function prevSettimana() {
 }
 
 function nuovaSettimana() {
-  let nuova = creaSettimana(new Date());
+  let ultima = archivio[archivio.length - 1];
+
+  let nuovaData = new Date(ultima.start);
+  nuovaData.setDate(nuovaData.getDate() + 7);
+
+  let nuova = creaSettimana(nuovaData);
+
   archivio.push(nuova);
-  settimanaCorrente = archivio.length-1;
+  settimanaCorrente = archivio.length - 1;
+
   render();
 }
 
