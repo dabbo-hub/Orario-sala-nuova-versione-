@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel San Valentino - RistoPro FIX Totale</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .table-btn { min-height: 130px; border: 4px solid #e2e8f0; border-radius: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.5rem; position: relative; cursor: pointer !important; background: white; transition: all 0.2s; }
+        .table-btn:hover { border-color: #3b82f6; transform: scale(1.02); }
+        .status-libero { color: #cbd5e1; }
+        .modal-bg { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center; }
+        
+        .c-blue { background: #3b82f6 !important; color: white !important; border-color: #1d4ed8 !important; }
+        .c-green { background: #10b981 !important; color: white !important; border-color: #047857 !important; }
+        .c-orange { background: #f59e0b !important; color: white !important; border-color: #b45309 !important; }
+        .c-red { background: #ef4444 !important; color: white !important; border-color: #b91c1c !important; }
+        .c-purple { background: #8b5cf6 !important; color: white !important; border-color: #6d28d9 !important; }
+        .c-slate { background: #475569 !important; color: white !important; border-color: #1e293b !important; }
+
+        @keyframes pulse-red {
+            0%, 100% { border-color: #ef4444; }
+            50% { border-color: #fca5a5; box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+        }
+        .alert-partenza-cestino { border: 6px solid #ef4444 !important; animation: pulse-red 1.5s infinite !important; }
+
+        @media print { .no-print { display: none !important; } .print-only { display: block !important; } }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="bg-slate-100 h-screen flex flex-col font-sans overflow-hidden text-slate-800">
+
+    <!-- HEADER -->
+    <header class="bg-white border-b-4 border-blue-800 p-4 h-24 flex justify-between items-center no-print z-50">
+        <div class="flex items-center gap-6">
+            <h1 class="text-sm font-black uppercase italic text-blue-800 leading-tight">Hotel <br><span class="text-slate-400 font-bold">San Valentino</span></h1>
+            <div class="h-10 w-px bg-slate-200"></div>
+            <input type="date" id="mainDate" onchange="render()" class="bg-slate-50 px-3 py-2 rounded-xl border-2 border-blue-100 font-black outline-none text-blue-800">
+        </div>
+        <div class="flex gap-2">
+            <button onclick="toggleStats()" class="bg-slate-800 text-white px-5 py-3 rounded-2xl font-black uppercase text-xs">Stats</button>
+            <button onclick="openModal('modalGroup')" class="bg-blue-700 text-white px-5 py-3 rounded-2xl font-black uppercase text-xs shadow-lg">+ Gruppo</button>
+        </div>
+    </header>
+
+    <nav class="bg-white p-3 flex gap-2 no-print border-b">
+        <button onclick="switchSala(1)" id="btnS1" class="flex-1 py-3 rounded-xl font-black bg-blue-700 text-white uppercase text-xs">Sala 1</button>
+        <button onclick="switchSala(2)" id="btnS2" class="flex-1 py-3 rounded-xl font-black bg-slate-100 text-slate-400 uppercase text-xs">Sala 2</button>
+        <button onclick="switchSala(3)" id="btnS3" class="flex-1 py-3 rounded-xl font-black bg-slate-100 text-slate-400 uppercase text-xs">Sala 3</button>
+    </nav>
+
+    <main id="gridSala" class="flex-1 p-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 overflow-y-auto no-print"></main>
+
+    <!-- SIDEBAR STATS -->
+    <div id="statsMenu" class="fixed inset-y-0 right-0 w-80 bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 p-6 overflow-y-auto border-l no-print">
+        <div class="flex justify-between items-center mb-6 border-b pb-2">
+            <h3 class="text-lg font-black uppercase text-blue-800 tracking-tighter">Resoconto</h3>
+            <button onclick="toggleStats()" class="text-4xl text-slate-300">×</button>
+        </div>
+        <div id="statsList" class="space-y-2 mb-6"></div>
+        <h4 class="font-black uppercase text-[10px] text-slate-400 mb-2 border-t pt-4">Tavoli occupati</h4>
+        <div id="statsTables" class="space-y-1 text-[10px]"></div>
+        <button onclick="window.print()" class="w-full mt-8 bg-emerald-600 text-white font-black py-4 rounded-2xl uppercase text-[10px]">🖨️ Stampa</button>
+    </div>
+
+    <!-- MODALE TAVOLO -->
+    <div id="modalDetail" class="modal-bg" onclick="if(event.target==this) closeModals()">
+        <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-sm space-y-4 relative shadow-2xl" onclick="event.stopPropagation()">
+            <button onclick="closeModals()" class="absolute top-6 right-8 text-3xl text-slate-300 hover:text-red-500">×</button>
+            <h3 class="text-xl font-black uppercase text-blue-800 italic">Gestione Tavolo</h3>
+            <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="mNewNum" placeholder="Tav." class="p-3 bg-slate-50 border rounded-xl font-black uppercase">
+                <input type="text" id="mRoom" placeholder="Cam." class="p-3 bg-blue-50 border border-blue-100 rounded-xl font-black text-blue-800">
+            </div>
+            <input type="text" id="mClient" placeholder="COGNOME" class="w-full p-4 bg-slate-100 rounded-xl font-black uppercase outline-none">
+            <div class="grid grid-cols-2 gap-2">
+                <input type="number" id="mPax" placeholder="PAX" class="p-3 border rounded-xl font-black text-center text-lg">
+                <select id="mPlan" class="p-3 bg-slate-800 text-white rounded-xl font-black text-xs uppercase"><option value="FBB">FBB</option><option value="FB">FB</option><option value="HB">HB</option><option value="BB">BB</option></select>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div><label class="font-black uppercase ml-1">Dal</label><input type="date" id="mStart" class="w-full p-2 bg-slate-50 rounded-lg"></div>
+                <div><label class="font-black uppercase ml-1">Al</label><input type="date" id="mEnd" class="w-full p-2 bg-slate-50 rounded-lg"></div>
+            </div>
+            <div class="flex gap-2 justify-center py-1">
+                <button onclick="mSelectedCol='c-slate'" class="w-6 h-6 rounded-full bg-slate-600 border border-white hover:scale-110"></button>
+                <button onclick="mSelectedCol='c-blue'" class="w-6 h-6 rounded-full bg-blue-500 border border-white hover:scale-110"></button>
+                <button onclick="mSelectedCol='c-green'" class="w-6 h-6 rounded-full bg-emerald-500 border border-white hover:scale-110"></button>
+                <button onclick="mSelectedCol='c-purple'" class="w-6 h-6 rounded-full bg-purple-500 border border-white hover:scale-110"></button>
+            </div>
+            <label class="flex items-center gap-3 bg-amber-50 p-4 rounded-xl border border-amber-200 cursor-pointer"><input type="checkbox" id="mSacco" class="w-6 h-6"> <span class="font-black text-amber-800 uppercase text-xs italic">🍔 Cestino Partenza</span></label>
+            <div class="flex gap-2">
+                <button onclick="closeModals()" class="flex-1 bg-slate-100 text-slate-400 font-black py-3 rounded-xl text-[10px] uppercase">Esci</button>
+                <button onclick="salvaTavolo()" class="flex-1 bg-blue-700 text-white font-black py-3 rounded-xl uppercase text-[10px]">Salva</button>
+                <button id="btnDel" onclick="liberaTavolo()" class="bg-red-50 text-red-500 px-3 rounded-xl italic font-bold">X</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE GRUPPO -->
+    <div id="modalGroup" class="modal-bg" onclick="if(event.target==this) closeModals()">
+        <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-md space-y-4 relative shadow-2xl" onclick="event.stopPropagation()">
+            <button onclick="closeModals()" class="absolute top-6 right-8 text-3xl text-slate-300">×</button>
+            <h2 class="text-xl font-black uppercase italic text-blue-800">Nuovo Gruppo</h2>
+            <input type="text" id="gName" placeholder="NOME GRUPPO" class="w-full p-4 bg-slate-100 rounded-xl font-black uppercase outline-none">
+            <div class="grid grid-cols-2 gap-2">
+                <input type="number" id="gPax" placeholder="TOT PAX" class="p-3 bg-blue-50 border rounded-xl font-black text-center">
+                <select id="gPlan" class="p-3 bg-slate-800 text-white rounded-xl font-black text-xs uppercase"><option value="FBB">FBB</option><option value="FB">FB</option><option value="HB">HB</option><option value="BB">BB</option></select>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div><label class="font-black uppercase ml-1">In</label><input type="date" id="gStart" class="w-full p-2 bg-slate-50 rounded-lg"></div>
+                <div><label class="font-black uppercase ml-1">Out</label><input type="date" id="gEnd" class="w-full p-2 bg-slate-50 rounded-lg"></div>
+            </div>
+            <div class="flex gap-2">
+                <select id="gColor" class="flex-1 p-3 bg-slate-50 border rounded-xl font-bold text-[10px] uppercase"><option value="c-blue">BLU</option><option value="c-green">VERDE</option><option value="c-orange">ARANCIO</option><option value="c-red">ROSSO</option></select>
+                <label class="flex-1 flex items-center justify-center gap-2 bg-amber-50 p-2 rounded-xl border border-amber-200 cursor-pointer shadow-inner"><input type="checkbox" id="gSacco" class="w-5 h-5"> <span class="font-black text-amber-800 uppercase text-[9px]">Cestini</span></label>
+            </div>
+            <button onclick="salvaGruppo()" class="w-full bg-blue-700 text-white font-black py-4 rounded-xl uppercase text-[10px]">Registra Gruppo</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSala = 1, activeIdx = null, mSelectedCol = 'c-slate';
+        let db = JSON.parse(localStorage.getItem('smartDB_Valentino_V16')) || {};
+
+        function getDates(start, end) {
+            let dates = [];
+            let curr = new Date(start + "T00:00:00");
+            let stop = new Date(end + "T00:00:00");
+            while (curr <= stop) {
+                dates.push(curr.toISOString().split('T')[0]);
+                curr.setDate(curr.getDate() + 1);
+            }
+            return dates;
+        }
+
+        function switchSala(n) {
+            currentSala = n;
+            for(let i=1; i<=3; i++) document.getElementById('btnS'+i).className = (i===n) ? "flex-1 py-3 rounded-xl font-black bg-blue-700 text-white shadow-md uppercase text-xs" : "flex-1 py-3 rounded-xl font-black bg-slate-100 text-slate-400 uppercase text-xs";
+            render();
+        }
+
+        function render() {
+            const date = document.getElementById('mainDate').value;
+            if(!db[date]) db[date] = { 1: {}, 2: {}, 3: {} };
+            const container = document.getElementById('gridSala');
+            container.innerHTML = '';
+            for (let i = 1; i <= 35; i++) {
+                const info = db[date][currentSala][i] || { label: i, status: 'libero' };
+                const isPartenzaCestino = info.sacco && info.endDate === date;
+                const btn = document.createElement('div');
+                btn.className = `table-btn shadow-sm ${info.status === 'occupato' ? info.color : 'status-libero'} ${isPartenzaCestino ? 'alert-partenza-cestino' : ''}`;
+                btn.onclick = () => openDetail(i);
+                btn.innerHTML = `
+                    <span class="text-[9px] font-black opacity-30 absolute top-2 uppercase pointer-events-none">Tavolo ${info.label || i}</span>
+                    <span class="text-sm font-black uppercase px-1 text-center pointer-events-none">${info.nome || 'Libero'}</span>
+                    ${info.status === 'occupato' ? `<div class="flex flex-col items-center mt-1 text-[8px] font-black uppercase pointer-events-none">
+                        <span class="bg-black/10 px-1.5 rounded">${info.room ? 'C.'+info.room : 'P.'+info.pax}</span>
+                        ${info.sacco ? `<span>🍔 CESTINO</span>` : `<span class="opacity-60">${info.plan}</span>`}
+                    </div>` : ''}
+                `;
+                container.appendChild(btn);
+            }
+            updateStats();
+        }
+
+        function openDetail(i) {
+            activeIdx = i;
+            const date = document.getElementById('mainDate').value;
+            const t = db[date][currentSala][i] || { label: i, startDate: date, endDate: date };
+            document.getElementById('mNewNum').value = t.label || i;
+            document.getElementById('mClient').value = t.nome || '';
+            document.getElementById('mPax').value = t.pax || '';
+            document.getElementById('mRoom').value = t.room || '';
+            document.getElementById('mPlan').value = t.plan || 'FB';
+            document.getElementById('mStart').value = t.startDate || date;
+            document.getElementById('mEnd').value = t.endDate || date;
+            document.getElementById('mSacco').checked = t.sacco || false;
+            mSelectedCol = t.color || 'c-slate';
+            document.getElementById('btnDel').style.display = (t.status === 'occupato') ? 'block' : 'none';
+            document.getElementById('modalDetail').style.display = 'flex';
+        }
+
+        function salvaTavolo() {
+            const nome = document.getElementById('mClient').value.toUpperCase();
+            if(!nome) return alert("Manca Cognome!");
+            const start = document.getElementById('mStart').value, end = document.getElementById('mEnd').value;
+            const dates = getDates(start, end);
+            dates.forEach(d => {
+                if(!db[d]) db[d] = { 1: {}, 2: {}, 3: {} };
+                db[d][currentSala][activeIdx] = {
+                    status: 'occupato', nome, pax: document.getElementById('mPax').value || 0,
+                    label: document.getElementById('mNewNum').value, room: document.getElementById('mRoom').value,
+                    plan: document.getElementById('mPlan').value, sacco: document.getElementById('mSacco').checked,
+                    color: mSelectedCol, startDate: start, endDate: end
+                };
+            });
+            sync();
+        }
+
+        function salvaGruppo() {
+            const nome = document.getElementById('gName').value.toUpperCase(), pax = parseInt(document.getElementById('gPax').value);
+            if(!nome || isNaN(pax)) return alert("Dati mancanti!");
+            const start = document.getElementById('gStart').value, end = document.getElementById('gEnd').value;
+            const dates = getDates(start, end);
+            dates.forEach(d => {
+                if(!db[d]) db[d] = { 1: {}, 2: {}, 3: {} };
+                let rimasti = pax;
+                for(let i=1; i<=35 && rimasti > 0; i++) {
+                    if(!db[d][currentSala][i] || db[d][currentSala][i].status !== 'occupato') {
+                        let p = Math.min(rimasti, 4);
+                        db[d][currentSala][i] = { 
+                            status:'occupato', nome, pax:p, label:i, color: document.getElementById('gColor').value, 
+                            plan: document.getElementById('gPlan').value, sacco: document.getElementById('gSacco').checked, 
+                            startDate: start, endDate: end 
+                        };
+                        rimasti -= p;
+                    }
+                }
+            });
+            sync();
+        }
+
+        function updateStats() {
+            const date = document.getElementById('mainDate').value;
+            const tList = document.getElementById('statsTables'); tList.innerHTML = '';
+            let totals = { FBB:0, FB:0, HB:0, BB:0, cestini:0 };
+            if(db[date]) {
+                Object.values(db[date][currentSala]).sort((a,b)=>a.label-b.label).forEach(t => {
+                    totals[t.plan] = (totals[t.plan] || 0) + parseInt(t.pax || 0);
+                    if(t.sacco) totals.cestini += parseInt(t.pax || 0);
+                    tList.innerHTML += `<div class="flex justify-between border-b py-1"><span>Tav. ${t.label}: ${t.nome}</span><span>${t.pax} ${t.sacco?'🍱':''}</span></div>`;
+                });
+            }
+            document.getElementById('statsList').innerHTML = `
+                <div class="grid grid-cols-2 gap-2"><div class="bg-blue-700 text-white p-2 rounded-lg text-center">FBB: ${totals.FBB}</div><div class="bg-slate-700 text-white p-2 rounded-lg text-center">FB: ${totals.FB}</div><div class="bg-slate-500 text-white p-2 rounded-lg text-center">HB: ${totals.HB}</div><div class="bg-slate-200 text-slate-700 p-2 rounded-lg text-center">BB: ${totals.BB}</div></div>
+                <div class="bg-red-600 text-white p-3 rounded-xl font-black mt-2 text-center uppercase shadow-md">Tot Cestini: ${totals.cestini} 🍔</div>`;
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModals() { document.querySelectorAll('.modal-bg').forEach(m => m.style.display = 'none'); }
+        function toggleStats() { document.getElementById('statsMenu').classList.toggle('translate-x-full'); }
+        function sync() { localStorage.setItem('smartDB_Valentino_V16', JSON.stringify(db)); closeModals(); render(); }
+        function liberaTavolo() { if(confirm("Libera tavolo?")) { delete db[document.getElementById('mainDate').value][currentSala][activeIdx]; sync(); } }
+
+        document.getElementById('mainDate').valueAsDate = new Date();
+        render();
+    </script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
