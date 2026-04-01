@@ -15,76 +15,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planning Hotel - Calendario Dinamico</title>
-    <script src="https://cdnjs.cloudflare.com"></script>
+    <!-- Libreria per il PDF -->
     <script src="https://cdnjs.cloudflare.com"></script>
     
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; }
-        body { font-family: 'Segoe UI', sans-serif; background:#f4f6f8; padding:20px; color: #333; }
+        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f6f8; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding:20px; color: #333; margin: 0; }
         
         .header-box { background: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        #logo-img { max-height: 120px; margin-bottom: 10px; cursor: pointer; border: 1px dashed #ccc; padding: 5px; }
+        #logo-img { max-height: 80px; margin-bottom: 10px; cursor: pointer; border: 1px dashed #ccc; padding: 5px; border-radius: 8px; }
         
-        .controls { background: var(--primary); padding: 15px; border-radius: 12px; text-align: center; position: sticky; top: 10px; z-index: 1000; color: white; margin-bottom: 20px; }
+        .controls { background: var(--primary); padding: 15px; border-radius: 12px; text-align: center; position: sticky; top: 10px; z-index: 1000; color: white; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .controls input[type="date"] { padding: 8px; border-radius: 5px; border: none; margin-right: 10px; font-weight: bold; }
         
         button { padding:10px 15px; margin:5px; border:none; border-radius: 6px; cursor:pointer; font-weight: bold; color: white; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
         .btn-blue { background: var(--accent); }
         .btn-green { background: #27ae60; }
         .btn-red { background: #e74c3c; }
-        .btn-gray { background: #95a5a6; float: right; }
+        .btn-gray { background: #95a5a6; }
 
-        .week-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 30px; }
-        h2 { color: var(--primary); font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .week-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 30px; page-break-after: always; }
+        h2 { color: var(--primary); font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 0; }
 
-        table { width:100%; border-collapse:collapse; table-layout: fixed; }
-        th, td { border:1px solid #ddd; padding:8px; text-align:center; }
-        th { background: var(--primary); color: white; font-size: 11px; line-height: 1.4; }
+        table { width:100%; border-collapse:collapse; table-layout: fixed; background: white; }
+        th, td { border:1px solid #dee2e6; padding:6px; text-align:center; overflow: hidden; }
+        th { background: var(--primary); color: white; font-size: 10px; line-height: 1.2; text-transform: uppercase; }
         
-        .name-cell { text-align: left; background: #f9f9f9; width: 160px; font-weight: bold; font-size: 13px; cursor: pointer; }
-        .name-cell small { display: block; color: #7f8c8d; font-style: italic; font-weight: normal; }
+        .name-cell { text-align: left; background: #fdfdfd; width: 140px; font-weight: bold; font-size: 12px; cursor: pointer; border-left: 4px solid var(--accent); }
+        .name-cell small { display: block; color: #7f8c8d; font-style: italic; font-weight: normal; font-size: 10px; }
 
-        .editable { width:100%; height:45px; border:none; resize:none; font-size:12px; background: transparent; text-align: center; font-family: inherit; }
+        .editable { width:100%; height:35px; border:none; resize:none; font-size:11px; background: transparent; text-align: center; font-family: inherit; outline: none; display: block; }
         
         /* Colori Turni */
-        .riposo { background-color: #ffcccc !important; }
+        .riposo { background-color: #ffcccc !important; color: #c0392b; font-weight: bold; }
         .fuori { background-color: #ffd699 !important; }
         .caffetteria { background-color: #ccf0ff !important; }
         .buffet { background-color: #ccffcc !important; }
         .runner { background-color: #ffe6cc !important; }
+
+        @media print { .controls { display: none; } }
     </style>
 </head>
 <body>
 
     <div id="app-content">
         <div class="header-box">
-            <img id="logo-img" src="" alt="Clicca per caricare Logo" onclick="document.getElementById('logo-input').click()">
+            <img id="logo-img" src="https://via.placeholder.com" alt="Logo Hotel" onclick="document.getElementById('logo-input').click()">
             <input type="file" id="logo-input" hidden accept="image/*" onchange="caricaLogo(this)">
-            <h1 id="hotel-name" style="margin:5px 0;">Orario Sala 2026</h1>
+            <h1 id="hotel-name" style="margin:5px 0; font-size: 24px;">Orario Sala 2026</h1>
         </div>
 
         <div id="tables-container"></div>
     </div>
 
     <div class="controls">
-        <span>Partenza Lunedì: </span>
+        <span>Inizio Lunedì: </span>
         <input type="date" id="data-selettore">
-        <button class="btn-blue" onclick="nuovaSettimana()">➕ Aggiungi Settimana</button>
-        <button class="btn-blue" onclick="aggiungiDipendente()">+ Dipendente</button>
-        <button class="btn-green" onclick="generaAuto()">🎯 Turni Auto</button>
+        <button class="btn-blue" onclick="nuovaSettimana()">➕ Nuova Settimana</button>
+        <button class="btn-blue" onclick="aggiungiDipendente()">👤 + Dipendente</button>
+        <button class="btn-green" onclick="generaAuto()">🎲 Turni Auto</button>
         <button class="btn-red" onclick="esportaPDF()">📄 Scarica PDF</button>
-        <button class="btn-gray" onclick="resetTotale()">🗑️ Reset</button>
+        <button class="btn-gray" onclick="resetTotale()" style="float: right;">🗑️ Reset</button>
     </div>
 
 <script>
     let dipendenti = [
         { n: "Umberto", r: "Maître" }, { n: "Dario", r: "Chef" }, { n: "Sara", r: "Chef" },
         { n: "Alex", r: "Chef" }, { n: "Milena", r: "Commis" }, { n: "Daiana", r: "Commis" },
-        { n: "Natalia", r: "Commis" }, { n: "Vittoria", r: "Commis" }, { n: "Argent", r: "Commis" }
+        { n: "Natalia", r: "Commis" }, { n: "Vittoria", r: "Commis" }, 
+      { n: "Milagros", r: "Commis" }, { n: "Daniela", r: "Commis" }
     ];
 
     window.onload = () => {
-        // Imposta data odierna nel calendario come default
         const oggi = new Date();
         document.getElementById('data-selettore').valueAsDate = oggi;
 
@@ -98,21 +101,27 @@
         }
     };
 
+    function salva() { 
+        localStorage.setItem('hotel_table_v5', document.getElementById('tables-container').innerHTML); 
+    }
+
     function caricaLogo(input) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById('logo-img').src = e.target.result;
-            localStorage.setItem('hotel_logo', e.target.result);
-        };
-        reader.readAsDataURL(input.files[0]);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('logo-img').src = e.target.result;
+                localStorage.setItem('hotel_logo', e.target.result);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     function nuovaSettimana() {
         const container = document.getElementById('tables-container');
         const dataScelta = new Date(document.getElementById('data-selettore').value);
-        
-        // Trova il lunedì della settimana scelta
-        const giornoSettimana = dataScelta.getDay(); // 0 è domenica, 1 lunedì
+        if(isNaN(dataScelta)) return alert("Seleziona una data valida");
+
+        const giornoSettimana = dataScelta.getDay();
         const diff = dataScelta.getDate() - giornoSettimana + (giornoSettimana === 0 ? -6 : 1);
         const lunedi = new Date(dataScelta.setDate(diff));
 
@@ -120,76 +129,96 @@
         div.className = 'week-card';
         
         let html = `<h2>Settimana dal ${lunedi.toLocaleDateString('it-IT')}</h2>`;
-        html += `<table><thead><tr><th>Dipendente</th>`;
+        html += `<table><thead><tr><th>Staff</th>`;
         
         const nomiGiorni = ["LUN", "MAR", "MER", "GIO", "VEN", "SAB", "DOM"];
         for(let i=0; i<7; i++) {
             let d = new Date(lunedi);
             d.setDate(lunedi.getDate() + i);
-            let dataFormattata = d.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'});
-            html += `<th>${nomiGiorni[i]}<br>${dataFormattata}</th>`;
+            html += `<th>${nomiGiorni[i]}<br>${d.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'})}</th>`;
         }
         
         html += `</tr></thead><tbody>`;
         dipendenti.forEach(d => {
             html += `<tr><td class="name-cell" onclick="modificaD(this)">${d.n}<small>${d.r}</small></td>` + 
-                    `<td><textarea class="editable"></textarea></td>`.repeat(7) + `</tr>`;
+                    `<td><textarea class="editable" placeholder="-"></textarea></td>`.repeat(7) + `</tr>`;
         });
         html += `</tbody></table>`;
         
         div.innerHTML = html;
-        container.appendChild(div);
+        container.prepend(div); // Mette la nuova settimana in alto
         agganciaEventi();
-        salva();
-    }
-
-    function generaAuto() {
-        const turni = [{c:'caffetteria', t:'07-15'}, {c:'buffet', t:'08-16'}, {c:'runner', t:'11-19'}];
-        document.querySelectorAll('table').forEach(tab => {
-            const righe = tab.querySelectorAll('tbody tr');
-            for(let col=1; col<=7; col++) {
-                let rIdx = Math.floor(Math.random() * righe.length);
-                righe.forEach((riga, i) => {
-                    const td = riga.cells[col]; const tx = td.querySelector('textarea');
-                    td.className = "";
-                    if(i === rIdx) { td.classList.add('riposo'); tx.value = "RIPOSO"; }
-                    else { let p = turni[Math.floor(Math.random()*turni.length)]; td.classList.add(p.c); tx.value = p.t; }
-                });
-            }
-        });
         salva();
     }
 
     function agganciaEventi() {
         document.querySelectorAll('.editable').forEach(tx => {
             tx.oninput = () => {
-                let v = tx.value.toUpperCase(); let td = tx.parentElement; td.className = "";
+                let v = tx.value.toUpperCase(); 
+                let td = tx.parentElement; 
+                td.className = "";
                 if(v.includes("RIPOSO")) td.classList.add('riposo');
-                if(v.includes("FUORI")) td.classList.add('fuori');
+                else if(v.includes("FUORI")) td.classList.add('fuori');
+                else if(v !== "") td.classList.add('caffetteria'); // Colore base se c'è testo
                 salva();
             };
         });
     }
 
-    function salva() { localStorage.setItem('hotel_table_v5', document.getElementById('tables-container').innerHTML); }
-    
+    function generaAuto() {
+        if(!confirm("Generare turni casuali? Sovrascriverà i dati esistenti.")) return;
+        const turni = [{c:'caffetteria', t:'07-15'}, {c:'buffet', t:'08-16'}, {c:'runner', t:'11-19'}];
+        document.querySelectorAll('table').forEach(tab => {
+            const righe = tab.querySelectorAll('tbody tr');
+            for(let col=1; col<=7; col++) {
+                let rIdxRiposo = Math.floor(Math.random() * righe.length);
+                righe.forEach((riga, i) => {
+                    const td = riga.cells[col]; 
+                    const tx = td.querySelector('textarea');
+                    td.className = "";
+                    if(i === rIdxRiposo) { td.classList.add('riposo'); tx.value = "RIPOSO"; }
+                    else { 
+                        let p = turni[Math.floor(Math.random()*turni.length)]; 
+                        td.classList.add(p.c); 
+                        tx.value = p.t; 
+                    }
+                });
+            }
+        });
+        salva();
+    }
+
     function modificaD(td) {
-        let n = prompt("Nome:", td.firstChild.textContent);
+        let n = prompt("Cambia Nome:", td.firstChild.textContent);
         if(n) { td.innerHTML = `${n}<small>${td.querySelector('small').innerText}</small>`; salva(); }
     }
 
     function aggiungiDipendente() {
-        let n = prompt("Nome:"); let r = prompt("Ruolo:");
-        if(n) dipendenti.push({n, r});
+        let n = prompt("Nome nuovo dipendente:");
+        let r = prompt("Ruolo (es. Chef, Commis):");
+        if(n && r) {
+            dipendenti.push({n, r});
+            alert("Aggiunto! Verrà incluso nelle prossime settimane create.");
+        }
     }
 
-    function resetTotale() { if(confirm("Cancellare tutto?")) { localStorage.clear(); location.reload(); } }
+    function esportaPDF() {
+        const element = document.getElementById('app-content');
+        const opt = {
+            margin: 10,
+            filename: 'Planning_Turni_Hotel.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
 
-    async function esportaPDF() {
-        const canvas = await html2canvas(document.getElementById('app-content'), { scale: 2 });
-        const pdf = new jspdf.jsPDF('l', 'mm', 'a4');
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 5, 297, (canvas.height * 297) / canvas.width);
-        pdf.save("Orario_Hotel.pdf");
+    function resetTotale() {
+        if(confirm("Sei sicuro di voler cancellare tutto lo storico delle settimane?")) {
+            localStorage.removeItem('hotel_table_v5');
+            document.getElementById('tables-container').innerHTML = "";
+        }
     }
 </script>
 </body>
