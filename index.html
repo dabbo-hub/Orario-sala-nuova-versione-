@@ -1,229 +1,220 @@
 <!DOCTYPE html>
-<html lang="en">
-
-  <head>
-    <meta charset="UTF-8">
-    <title>Untitled</title>
-    
-
-  </head>
-    
-  <body>
-  <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planning Hotel - Calendario Dinamico</title>
-    <!-- Libreria per il PDF -->
-    <script src="https://cdnjs.cloudflare.com"></script>
-    
-    <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f6f8; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding:20px; color: #333; margin: 0; }
-        
-        .header-box { background: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        #logo-img { max-height: 80px; margin-bottom: 10px; cursor: pointer; border: 1px dashed #ccc; padding: 5px; border-radius: 8px; }
-        
-        .controls { background: var(--primary); padding: 15px; border-radius: 12px; text-align: center; position: sticky; top: 10px; z-index: 1000; color: white; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .controls input[type="date"] { padding: 8px; border-radius: 5px; border: none; margin-right: 10px; font-weight: bold; }
-        
-        button { padding:10px 15px; margin:5px; border:none; border-radius: 6px; cursor:pointer; font-weight: bold; color: white; transition: 0.2s; }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-blue { background: var(--accent); }
-        .btn-green { background: #27ae60; }
-        .btn-red { background: #e74c3c; }
-        .btn-gray { background: #95a5a6; }
+<meta charset="UTF-8">
+<title>Orario Sala 2026 PRO</title>
 
-        .week-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 30px; page-break-after: always; }
-        h2 { color: var(--primary); font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 0; }
+<style>
+body { font-family: system-ui; background:#f1f5f9; padding:20px;}
+h1 { margin-bottom:10px;}
 
-        table { width:100%; border-collapse:collapse; table-layout: fixed; background: white; }
-        th, td { border:1px solid #dee2e6; padding:6px; text-align:center; overflow: hidden; }
-        th { background: var(--primary); color: white; font-size: 10px; line-height: 1.2; text-transform: uppercase; }
-        
-        .name-cell { text-align: left; background: #fdfdfd; width: 140px; font-weight: bold; font-size: 12px; cursor: pointer; border-left: 4px solid var(--accent); }
-        .name-cell small { display: block; color: #7f8c8d; font-style: italic; font-weight: normal; font-size: 10px; }
+.topbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;}
 
-        .editable { width:100%; height:35px; border:none; resize:none; font-size:11px; background: transparent; text-align: center; font-family: inherit; outline: none; display: block; }
-        
-        /* Colori Turni */
-        .riposo { background-color: #ffcccc !important; color: #c0392b; font-weight: bold; }
-        .fuori { background-color: #ffd699 !important; }
-        .caffetteria { background-color: #ccf0ff !important; }
-        .buffet { background-color: #ccffcc !important; }
-        .runner { background-color: #ffe6cc !important; }
+button {
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#2563eb;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
 
-        @media print { .controls { display: none; } }
-    </style>
+button.danger { background:#dc2626; }
+
+table {
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+}
+
+th, td {
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:center;
+}
+
+th { background:#0f172a; color:white; }
+
+.nome { background:#e2e8f0; font-weight:bold; }
+
+input {
+  width:100%;
+  border:none;
+  text-align:center;
+  background:transparent;
+}
+
+.settimana {
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+/* STAMPA */
+@media print {
+  .topbar { display:none; }
+}
+</style>
 </head>
+
 <body>
 
-    <div id="app-content">
-        <div class="header-box">
-            <img id="logo-img" src="https://via.placeholder.com" alt="Logo Hotel" onclick="document.getElementById('logo-input').click()">
-            <input type="file" id="logo-input" hidden accept="image/*" onchange="caricaLogo(this)">
-            <h1 id="hotel-name" style="margin:5px 0; font-size: 24px;">Orario Sala 2026</h1>
-        </div>
+<h1>Orario Sala 2026</h1>
 
-        <div id="tables-container"></div>
-    </div>
+<div class="topbar">
+  <button onclick="prevSettimana()">⬅️</button>
+  <button onclick="nextSettimana()">➡️</button>
+  <button onclick="nuovaSettimana()">➕ Settimana</button>
+  <button onclick="aggiungiDipendente()">➕ Dipendente</button>
+  <button onclick="window.print()">📄 PDF</button>
+  <button class="danger" onclick="resetDati()">🗑️ Reset</button>
+</div>
 
-    <div class="controls">
-        <span>Inizio Lunedì: </span>
-        <input type="date" id="data-selettore">
-        <button class="btn-blue" onclick="nuovaSettimana()">➕ Nuova Settimana</button>
-        <button class="btn-blue" onclick="aggiungiDipendente()">👤 + Dipendente</button>
-        <button class="btn-green" onclick="generaAuto()">🎲 Turni Auto</button>
-        <button class="btn-red" onclick="esportaPDF()">📄 Scarica PDF</button>
-        <button class="btn-gray" onclick="resetTotale()" style="float: right;">🗑️ Reset</button>
-    </div>
+<div class="settimana" id="labelSettimana"></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Nome</th>
+      <th>Lun<br><small id="d0"></small></th>
+      <th>Mar<br><small id="d1"></small></th>
+      <th>Mer<br><small id="d2"></small></th>
+      <th>Gio<br><small id="d3"></small></th>
+      <th>Ven<br><small id="d4"></small></th>
+      <th>Sab<br><small id="d5"></small></th>
+      <th>Dom<br><small id="d6"></small></th>
+    </tr>
+  </thead>
+  <tbody id="corpo"></tbody>
+</table>
 
 <script>
-    let dipendenti = [
-        { n: "Umberto", r: "Maître" }, { n: "Dario", r: "Chef" }, { n: "Sara", r: "Chef" },
-        { n: "Alex", r: "Chef" }, { n: "Milena", r: "Commis" }, { n: "Daiana", r: "Commis" },
-        { n: "Natalia", r: "Commis" }, { n: "Vittoria", r: "Commis" }, 
-      { n: "Milagros", r: "Commis" }, { n: "Daniela", r: "Commis" }
-    ];
+let archivio = JSON.parse(localStorage.getItem("orarioMulti")) || [];
+let settimanaCorrente = 0;
 
-    window.onload = () => {
-        const oggi = new Date();
-        document.getElementById('data-selettore').valueAsDate = oggi;
+/* CREA PRIMA SETTIMANA */
+if (archivio.length === 0) {
+  archivio.push(creaSettimana(new Date()));
+}
 
-        const savedLogo = localStorage.getItem('hotel_logo');
-        if(savedLogo) document.getElementById('logo-img').src = savedLogo;
+/* CREA STRUTTURA SETTIMANA */
+function creaSettimana(dataBase) {
+  let base = new Date(dataBase);
+  base.setDate(base.getDate() - base.getDay() + 1);
 
-        const savedData = localStorage.getItem('hotel_table_v5');
-        if(savedData) {
-            document.getElementById('tables-container').innerHTML = savedData;
-            agganciaEventi();
-        }
-    };
+  return {
+    start: base,
+    dipendenti: []
+  };
+}
 
-    function salva() { 
-        localStorage.setItem('hotel_table_v5', document.getElementById('tables-container').innerHTML); 
+/* DATE */
+function aggiornaDate() {
+  let settimana = archivio[settimanaCorrente];
+  let base = new Date(settimana.start);
+
+  for (let i=0;i<7;i++) {
+    let d = new Date(base);
+    d.setDate(base.getDate()+i);
+    document.getElementById("d"+i).innerText =
+      d.getDate()+"/"+(d.getMonth()+1);
+  }
+
+  document.getElementById("labelSettimana").innerText =
+    "Settimana: " + base.toLocaleDateString();
+}
+
+/* RENDER */
+function render() {
+  let corpo = document.getElementById("corpo");
+  corpo.innerHTML = "";
+
+  let settimana = archivio[settimanaCorrente];
+
+  settimana.dipendenti.forEach((d,i)=>{
+    let tr = document.createElement("tr");
+
+    let tdNome = document.createElement("td");
+    tdNome.className="nome";
+    tdNome.innerHTML =
+      `<input value="${d.nome}" onchange="salvaNome(${i},this.value)">`;
+    tr.appendChild(tdNome);
+
+    for (let g=0;g<7;g++) {
+      let td = document.createElement("td");
+      td.innerHTML =
+        `<input placeholder="es: 10-15 / 18-23"
+         value="${d.turni[g]||""}"
+         onchange="salvaTurno(${i},${g},this.value)">`;
+      tr.appendChild(td);
     }
 
-    function caricaLogo(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('logo-img').src = e.target.result;
-                localStorage.setItem('hotel_logo', e.target.result);
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
+    corpo.appendChild(tr);
+  });
 
-    function nuovaSettimana() {
-        const container = document.getElementById('tables-container');
-        const dataScelta = new Date(document.getElementById('data-selettore').value);
-        if(isNaN(dataScelta)) return alert("Seleziona una data valida");
+  aggiornaDate();
+  salva();
+}
 
-        const giornoSettimana = dataScelta.getDay();
-        const diff = dataScelta.getDate() - giornoSettimana + (giornoSettimana === 0 ? -6 : 1);
-        const lunedi = new Date(dataScelta.setDate(diff));
+/* NAVIGAZIONE */
+function nextSettimana() {
+  if (settimanaCorrente < archivio.length-1) {
+    settimanaCorrente++;
+    render();
+  }
+}
 
-        const div = document.createElement('div');
-        div.className = 'week-card';
-        
-        let html = `<h2>Settimana dal ${lunedi.toLocaleDateString('it-IT')}</h2>`;
-        html += `<table><thead><tr><th>Staff</th>`;
-        
-        const nomiGiorni = ["LUN", "MAR", "MER", "GIO", "VEN", "SAB", "DOM"];
-        for(let i=0; i<7; i++) {
-            let d = new Date(lunedi);
-            d.setDate(lunedi.getDate() + i);
-            html += `<th>${nomiGiorni[i]}<br>${d.toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'})}</th>`;
-        }
-        
-        html += `</tr></thead><tbody>`;
-        dipendenti.forEach(d => {
-            html += `<tr><td class="name-cell" onclick="modificaD(this)">${d.n}<small>${d.r}</small></td>` + 
-                    `<td><textarea class="editable" placeholder="-"></textarea></td>`.repeat(7) + `</tr>`;
-        });
-        html += `</tbody></table>`;
-        
-        div.innerHTML = html;
-        container.prepend(div); // Mette la nuova settimana in alto
-        agganciaEventi();
-        salva();
-    }
+function prevSettimana() {
+  if (settimanaCorrente > 0) {
+    settimanaCorrente--;
+    render();
+  }
+}
 
-    function agganciaEventi() {
-        document.querySelectorAll('.editable').forEach(tx => {
-            tx.oninput = () => {
-                let v = tx.value.toUpperCase(); 
-                let td = tx.parentElement; 
-                td.className = "";
-                if(v.includes("RIPOSO")) td.classList.add('riposo');
-                else if(v.includes("FUORI")) td.classList.add('fuori');
-                else if(v !== "") td.classList.add('caffetteria'); // Colore base se c'è testo
-                salva();
-            };
-        });
-    }
+function nuovaSettimana() {
+  let nuova = creaSettimana(new Date());
+  archivio.push(nuova);
+  settimanaCorrente = archivio.length-1;
+  render();
+}
 
-    function generaAuto() {
-        if(!confirm("Generare turni casuali? Sovrascriverà i dati esistenti.")) return;
-        const turni = [{c:'caffetteria', t:'07-15'}, {c:'buffet', t:'08-16'}, {c:'runner', t:'11-19'}];
-        document.querySelectorAll('table').forEach(tab => {
-            const righe = tab.querySelectorAll('tbody tr');
-            for(let col=1; col<=7; col++) {
-                let rIdxRiposo = Math.floor(Math.random() * righe.length);
-                righe.forEach((riga, i) => {
-                    const td = riga.cells[col]; 
-                    const tx = td.querySelector('textarea');
-                    td.className = "";
-                    if(i === rIdxRiposo) { td.classList.add('riposo'); tx.value = "RIPOSO"; }
-                    else { 
-                        let p = turni[Math.floor(Math.random()*turni.length)]; 
-                        td.classList.add(p.c); 
-                        tx.value = p.t; 
-                    }
-                });
-            }
-        });
-        salva();
-    }
+/* DATI */
+function aggiungiDipendente() {
+  let nome = prompt("Nome dipendente:");
+  if (!nome) return;
 
-    function modificaD(td) {
-        let n = prompt("Cambia Nome:", td.firstChild.textContent);
-        if(n) { td.innerHTML = `${n}<small>${td.querySelector('small').innerText}</small>`; salva(); }
-    }
+  archivio[settimanaCorrente].dipendenti.push({
+    nome: nome,
+    turni: ["","","","","","",""]
+  });
 
-    function aggiungiDipendente() {
-        let n = prompt("Nome nuovo dipendente:");
-        let r = prompt("Ruolo (es. Chef, Commis):");
-        if(n && r) {
-            dipendenti.push({n, r});
-            alert("Aggiunto! Verrà incluso nelle prossime settimane create.");
-        }
-    }
+  render();
+}
 
-    function esportaPDF() {
-        const element = document.getElementById('app-content');
-        const opt = {
-            margin: 10,
-            filename: 'Planning_Turni_Hotel.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-        };
-        html2pdf().set(opt).from(element).save();
-    }
+function salvaNome(i,val) {
+  archivio[settimanaCorrente].dipendenti[i].nome = val;
+  salva();
+}
 
-    function resetTotale() {
-        if(confirm("Sei sicuro di voler cancellare tutto lo storico delle settimane?")) {
-            localStorage.removeItem('hotel_table_v5');
-            document.getElementById('tables-container').innerHTML = "";
-        }
-    }
+function salvaTurno(i,g,val) {
+  archivio[settimanaCorrente].dipendenti[i].turni[g] = val;
+  salva();
+}
+
+function salva() {
+  localStorage.setItem("orarioMulti", JSON.stringify(archivio));
+}
+
+function resetDati() {
+  if(confirm("Cancellare tutto?")) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+/* INIT */
+render();
 </script>
+
 </body>
-</html>
-    
-  </body>
-  
 </html>
